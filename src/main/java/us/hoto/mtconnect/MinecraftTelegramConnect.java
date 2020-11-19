@@ -33,7 +33,7 @@ import java.util.*;
 public class MinecraftTelegramConnect {
 	public static final String MODID = "mtconnect";
 	public static final String NAME = "Minecraft-Telegram Connect";
-	public static final String VERSION = "1.1";
+	public static final String VERSION = "1.2";
 
 	private static boolean active = true;
 
@@ -83,32 +83,35 @@ public class MinecraftTelegramConnect {
 		bot.execute(new GetUpdates().limit(100).offset(updateId).timeout(0), new Callback<GetUpdates, GetUpdatesResponse>() {
 			@Override
 			public void onResponse(GetUpdates request, GetUpdatesResponse response) {
-				List<Update> updates = response.updates();
-				if(updates != null) {
-					if(updates.size() > 0) updateId = updates.get(updates.size() - 1).updateId() + 1;
-					updates.forEach(update -> {
-						if(update.message() == null) return;
-						if(!update.message().chat().id().equals(chatId)) return;
-						String name = update.message().from().lastName() == null ? update.message().from().firstName() : String.format("%s %s", update.message().from().firstName(), update.message().from().lastName());
-						String text = update.message().text() != null ? update.message().text() : update.message().caption() != null ? update.message().caption() : "(No text in message)";
-						FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().sendMessage(new TextComponentString(String.format("[Telegram] <%s> %s", name, text)));
-						if(text.equals("mcpl")) {
-							String list = String.join(", ", FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getOnlinePlayerNames());
-							if(list.isEmpty()) list = "There is no players.";
-							bot.execute(new SendMessage(chatId, list), new Callback() {
-								@Override
-								public void onResponse(BaseRequest request, BaseResponse response) {
+				try {
+					List<Update> updates = response.updates();
+					if(updates != null) {
+						if(updates.size() > 0) updateId = updates.get(updates.size() - 1).updateId() + 1;
+						updates.forEach(update -> {
+							if(update.message() == null) return;
+							if(!update.message().chat().id().equals(chatId)) return;
+							String name = update.message().from().lastName() == null ? update.message().from().firstName() : String.format("%s %s", update.message().from().firstName(), update.message().from().lastName());
+							String text = update.message().text() != null ? update.message().text() : update.message().caption() != null ? update.message().caption() : "(No text in message)";
+							FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().sendMessage(new TextComponentString(String.format("[Telegram] <%s> %s", name, text)));
+							if(text.equals("mcpl")) {
+								String list = String.join(", ", FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getOnlinePlayerNames());
+								if(list.isEmpty()) list = "There is no players.";
+								bot.execute(new SendMessage(chatId, list), new Callback() {
+									@Override
+									public void onResponse(BaseRequest request, BaseResponse response) {
 
-								}
-								@Override
-								public void onFailure(BaseRequest request, IOException e) {
+									}
+									@Override
+									public void onFailure(BaseRequest request, IOException e) {
 
-								}
-							});
-						}
-					});
+									}
+								});
+							}
+						});
+					}
+				} finally {
+					getUpdate();
 				}
-				getUpdate();
 			}
 
 			@Override
