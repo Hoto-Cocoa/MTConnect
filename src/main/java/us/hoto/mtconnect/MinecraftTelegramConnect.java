@@ -14,6 +14,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.AdvancementEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -180,6 +181,36 @@ class MinecraftTelegramConnectEventHandler {
 	@SubscribeEvent
 	public void playerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
 		bot.execute(new SendMessage(chatId, String.format("%s left the game", event.player.getDisplayNameString())), new Callback() {
+			@Override
+			public void onResponse(BaseRequest request, BaseResponse response) {
+
+			}
+
+			@Override
+			public void onFailure(BaseRequest request, IOException e) {
+
+			}
+		});
+	}
+
+	@SubscribeEvent
+	public void advancement(AdvancementEvent event) {
+		String message, type;
+		switch(Objects.requireNonNull(event.getAdvancement().getDisplay()).getFrame().getName()) {
+			case "goal": {
+				message = "reached";
+				type = "goal";
+			} break;
+			case "challenge": {
+				message = "completed";
+				type = "challenge";
+			} break;
+			default: {
+				message = "made";
+				type = "advancement";
+			}
+		}
+		bot.execute(new SendMessage(chatId, String.format("%s has %s the %s %s", event.getEntityPlayer().getDisplayNameString(), message, type, event.getAdvancement().getDisplayText().getUnformattedText())), new Callback() {
 			@Override
 			public void onResponse(BaseRequest request, BaseResponse response) {
 
