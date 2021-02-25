@@ -195,8 +195,9 @@ class MinecraftTelegramConnectEventHandler {
 
 	@SubscribeEvent
 	public void advancement(AdvancementEvent event) {
+		if(event.getAdvancement().getDisplay() == null) return;
 		String message, type;
-		switch(Objects.requireNonNull(event.getAdvancement().getDisplay()).getFrame().getName()) {
+		switch(event.getAdvancement().getDisplay().getFrame().getName()) {
 			case "goal": {
 				message = "reached";
 				type = "goal";
